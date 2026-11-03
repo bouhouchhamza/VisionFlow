@@ -1,0 +1,11 @@
+# Prototype scénario A — dépendances directes, versions exactes (Python 3.11, Windows, CPU).
+# Choix et licences : docs/DECISIONS.md D-008, D-013, D-022. Versions transitives figées : requirements.lock.
+av==18.1.0
+numpy==2.4.6
+onnxruntime==1.31.1
+opencv-python==4.14.0.94
+supervision==0.31.4
+pyyaml==6.0.3
+scipy==1.17.1
+pytest==9.2.0
+trackers==2.6.1

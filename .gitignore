@@ -1,0 +1,77 @@
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials*.json
+
+# Environnements virtuels et caches Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Node (option 2 de stack, si retenue)
+node_modules/
+
+# Vidéos et médias (jamais versionnés). *.ts et *.mts sont absents car ils
+# désignent aussi du TypeScript : ranger ces flux sous data/.
+*.mp4
+*.m4v
+*.mov
+*.avi
+*.mkv
+*.webm
+*.mpg
+*.mpeg
+*.m2ts
+*.flv
+*.wmv
+*.h264
+*.h265
+*.hevc
+*.y4m
+
+# Poids de modèles
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.safetensors
+*.ckpt
+*.bin
+*.weights
+models/
+
+# Données, runs et sorties volumineuses
+data/
+runs/
+reports/
+experiments/**/out/
+experiments/**/media/
+*.sqlite
+*.sqlite3
+*.db
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Système et éditeurs
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/

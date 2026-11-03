@@ -1,0 +1,49 @@
+# Prototype scénario A — extrait de réglage S1 (experiments/E0/INVENTAIRE.md).
+# Chaque valeur ci-dessous est un choix de départ, pas un réglage validé.
+version_schema: 1
+scenario: comptage_passages
+
+video:
+  chemin: data/videos/meva/2018-03-07.16-50-01.16-55-01.school.G420.r13.avi
+  sha256: 19A8159AAE2423E4A0221BED3735BD2C61B158B02E4DFCF8A21D007796816CE4
+  id_echantillon: S1
+  role_echantillon: reglage
+  debut_declare: "2018-03-07T16:50:01"   # tiré du nom de fichier ; fuseau horaire non documenté
+  source_debut: nom_fichier
+  # AVI + H.264 avec images B : les PTS lus sont attribués par le démultiplexeur dans l'ordre de décodage, ce ne
+  # sont pas des instants de présentation (constat E3, experiments/E3/PROTOCOLE.md). 9000 paquets, aucun vide.
+  mode_temps: rang_cadence_nominale
+
+lignes:
+  - id: portes
+    # Seuil des deux doubles portes, coordonnées normalisées (x, y) de l'image décodée 1920x1072.
+    p1: [0.44, 0.64]
+    p2: [0.74, 0.81]
+    # Côté gauche (en allant de p1 vers p2) = extérieur, en haut de l'image.
+    sens:
+      gauche_vers_droite: entree
+      droite_vers_gauche: sortie
+    marge_px: 6
+    extension_segment: 0.05
+
+analyse:
+  cadence_analyse: 10          # images analysées par seconde de temps vidéo
+  modele:
+    chemin: models/yolox_s.onnx
+    sha256: C5C2D13E59AE883E6AF3B45DAEA64AF4833A4951C92D116EC270D9DDBE998063
+    taille_entree: [640, 640]
+  seuil_detection: 0.1         # bas : ByteTrack réutilise les détections faibles en seconde association
+  seuil_nms: 0.45
+  suivi:
+    # Paramètres de trackers.ByteTrackTracker 2.6.1. Avec horodatages, une piste perdue est conservée
+    # lost_track_buffer / 30 secondes, quelle que soit la cadence d'analyse.
+    lost_track_buffer: 60
+    track_activation_threshold: 0.5
+    high_conf_det_threshold: 0.5
+    minimum_consecutive_frames: 2
+    minimum_iou_threshold: 0.1
+  point_ancrage: bas_centre
+
+regle_passage:
+  maintien_ms: 1000            # hypothèse E1, pas une vérité terrain
+  fenetre_doublon_ms: 1500
