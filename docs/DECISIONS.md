@@ -185,7 +185,8 @@ Dernière mise à jour : 2026-11-03.
   - Code : Apache-2.0 (constaté dans le dépôt). Le pré- et post-traitement de `passages/detection.py` en est repris,
     avec mention.
   - Poids : publiés comme fichiers de la version `0.1.1rc0` du même dépôt ; **aucune licence distincte des poids
-    trouvée** dans le README ni dans les notes de version. Statut : non établi.
+    trouvée** dans le README ni dans les notes de version. Statut juridique : **non établi**. Leur usage dans le
+    prototype est un choix technique pour mesurer, pas une validation juridique.
   - Données d'entraînement : COCO. Conditions non vérifiées (page des conditions illisible sans JavaScript).
   - Écarté pour le prototype : Ultralytics YOLO (AGPL-3.0 et lecture extensive de l'éditeur, D-008) ; non pas interdit,
     mais ses obligations ne sont pas nécessaires pour mesurer.
@@ -213,6 +214,9 @@ Dernière mise à jour : 2026-11-03.
   (`images_temps_reconstruit`), réservé aux conteneurs à cadence fixe par construction après contrôle E3.
 - **Ce que ce n'est pas** : ni une normalisation du fichier, ni la récupération d'un temps de capture perdu. Le fichier
   original n'est pas modifié.
+- **Statut du temps de S1** : hypothèse propre à S1. Le nombre de paquets et l'absence de paquet vide ne prouvent pas
+  que la capture était régulière à 30 images/s (E3 §4.3). Les écarts temporels mesurés entre machine et référence
+  dépendent de cette hypothèse, des deux côtés de la même façon.
 - **Remplace en partie** l'alternative écartée de D-004 (« numéro d'image ÷ cadence ») : elle reste fausse sur un
   flux à cadence variable, d'où la restriction et le contrôle des paquets vides.
 

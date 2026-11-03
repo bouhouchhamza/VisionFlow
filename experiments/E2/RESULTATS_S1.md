@@ -46,8 +46,9 @@ d'après les résultats : ce sont les valeurs de départ.
 
 ### Temps vidéo
 
-9 000 paquets, aucun vide ; 9 000 images décodées ; 4 328 reculs de PTS bruts (attendus, E3 §4.3) ; temps reconstruit
-régulier, 33,33 ms entre images.
+9 000 paquets, aucun vide ; 9 000 images décodées ; 4 328 reculs de PTS bruts (attendus, E3 §4.3). Le temps
+reconstruit est régulier **par construction** (33,33 ms entre images) : la régularité de la capture à 30 images/s reste
+une hypothèse propre à S1, que ces comptes ne prouvent pas.
 
 ### Observations machine (non validées)
 
@@ -101,7 +102,34 @@ donne des sorties **identiques** à celles du run complet sur cette portion : 20
 - Lecteur d'annotation : 48 sauts sur 48 rendent l'image exacte (E3 §4.3).
 - Vidéo annotée : 3 000 images, 10 images/s, 960×536, 300,0 s (ffprobe).
 
-## 5. Limites
+## 5. Procédure prévue après réception de la référence humaine
+
+Gel jusqu'à la passe 1 : détecteur, suivi, ligne et seuils ne changent pas (empreinte canonique de la configuration
+vérifiée identique à celle du run `20261103T172241Z-b3b507`). Aucune optimisation de performance avant d'avoir localisé
+les erreurs.
+
+1. Comparaison sur le run existant :
+   `python -m passages comparer --run runs/20261103T172241Z-b3b507 --reference <annotation>`
+   → appariés, manqués, ajoutés, sens inversés, doublons, tableau par minute.
+2. Examen des 14 paires suspectes :
+   `python -m passages examiner-paires --run runs/20261103T172241Z-b3b507 --reference <annotation>`
+   → indices par paire (recouvrement des pistes, IoU, intervalle et distance de reprise, nombre de franchissements et
+   excursion au-delà de la ligne), lecture de la référence (une ou plusieurs personnes humaines dans la fenêtre),
+   planches de 4 images par paire. Catégories : fragmentation du suivi, même personne sur deux pistes, oscillation autour
+   de la ligne, personnes réellement différentes, vrai aller-retour (lien `retour_de` de la référence). Les catégories
+   automatiques sont des indices ; la conclusion se fait sur les planches et la référence.
+3. Durées de maintien : la comparaison donne déjà H = 0, 500, 1 000 et 2 000 ms, appliquées de la même façon à la
+   machine et à la référence. La référence humaine n'est jamais modifiée ; un désaccord apparent est noté, pas corrigé.
+4. Une seule correction ciblée sur la cause d'erreur dominante, consignée dans `docs/DECISIONS.md`, nouveau run,
+   nouvelle comparaison : effet mesuré sur S1, présenté comme **résultat de réglage**.
+5. Réserves R1 et R2 : seulement après gel d'une première configuration (empreinte notée).
+
+Traçabilité ajoutée pour les prochains runs : commit et état « dirty » de tout le dépôt au démarrage
+(`git_commit`, `git_dirty`, `git_fichiers_modifies`), empreintes de la vidéo, du modèle, de la configuration (contenu
+canonique et fichier). Les rendus, comparaisons et examens enregistrent aussi le commit de l'outil. Le run existant,
+antérieur au premier commit, n'a pas de commit enregistré.
+
+## 6. Limites
 
 - **Aucune mesure d'erreur** : manqués, ajouts, sens inversés et doublons ne sont pas mesurés tant que S1 n'est pas annotée.
   Ensuite, ils ne vaudront que pour S1, extrait de réglage : une estimation optimiste, pas une évaluation.
@@ -109,5 +137,5 @@ donne des sorties **identiques** à celles du run complet sur cette portion : 20
 - La boucle graphique de l'outil d'annotation (fenêtre, touches) n'a pas été exercée ; seule sa logique l'a été.
 - Ancrage au bas de la boîte : sensible aux pieds masqués et aux boîtes coupées par le bord de l'image.
 - `lost_track_buffer` vaut 60, soit 2 s, et la cadence d'analyse 10 images/s : ces valeurs de départ ne sont pas réglées.
-- La licence des poids YOLOX et les conditions des données COCO ne sont pas établies (D-022) ; prototype seulement.
+- Le statut juridique des poids YOLOX et les conditions des données COCO restent non établis (D-022).
 - Le comparateur ne compare pas encore deux passes humaines entre elles.

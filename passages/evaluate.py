@@ -15,9 +15,11 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+import passages
 from passages.config import sha256_fichier
 from passages.crossing import ANNULE_RETOUR, PASSAGE, appliquer_maintien, deriver_passages_machine
-from passages.run import charger_run, ecrire_json
+from passages.run import RACINE, charger_run, ecrire_json
+from passages.versions import etat_git
 from passages.video import format_temps
 
 MAINTIENS_SENSIBILITE = [0, 500, 1000, 2000]
@@ -242,6 +244,7 @@ def comparer(dossier_run: str, chemin_reference: str, maintien_ms: int | None, t
         "version_format": 1,
         "cree_le_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "run_id": ev["run_id"],
+        "outil": {"passages": passages.__version__, **etat_git(RACINE)},
         "reference": {"chemin": str(Path(chemin_reference).as_posix()), "sha256": sha256_fichier(chemin_reference).upper(),
                       "annotateur": ref_doc["annotateur"], "passe": ref_doc["passe"],
                       "role_echantillon": manifeste["config"]["contenu"]["video"].get("role_echantillon"),

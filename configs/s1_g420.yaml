@@ -12,6 +12,7 @@ video:
   source_debut: nom_fichier
   # AVI + H.264 avec images B : les PTS lus sont attribués par le démultiplexeur dans l'ordre de décodage, ce ne
   # sont pas des instants de présentation (constat E3, experiments/E3/PROTOCOLE.md). 9000 paquets, aucun vide.
+  # Temps reconstruit à 30 i/s : hypothèse propre à S1, la régularité de la capture n'est pas prouvée.
   mode_temps: rang_cadence_nominale
 
 lignes:

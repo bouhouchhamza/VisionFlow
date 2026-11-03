@@ -15,7 +15,7 @@ from passages.config import sha256_fichier
 from passages.crossing import Ligne
 from passages.run import RACINE, charger_run, ecrire_json
 from passages.video import format_temps, lire
-from passages.versions import version_ffmpeg
+from passages.versions import etat_git, version_ffmpeg
 
 DUREE_FLASH_MS = 1500
 
@@ -111,6 +111,7 @@ def rendre(dossier_run: str, largeur: int = 960, afficher=print) -> Path:
         "largeur": w_out,
         "hauteur": h_out,
         "encodeur": version_ffmpeg(),
+        **etat_git(RACINE),
         "remarque": "Superposition des observations brutes du run ; la cadence de sortie est la cadence d'analyse.",
     })
     afficher(f"vidéo annotée : {sortie} ({ecrites} images)")

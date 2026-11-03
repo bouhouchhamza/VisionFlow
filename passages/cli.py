@@ -77,6 +77,12 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--maintien-ms", type=int)
     c.add_argument("--tolerance-ms", type=int, default=1000)
 
+    e = sp.add_parser("examiner-paires", help="indices sur les paires « doublon probable » d'un run")
+    e.add_argument("--run", required=True)
+    e.add_argument("--reference")
+    e.add_argument("--tolerance-ms", type=int, default=1000)
+    e.add_argument("--sans-planches", action="store_true")
+
     args = p.parse_args(argv)
     if args.commande == "analyser":
         from passages.run import analyser
@@ -92,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     elif args.commande == "comparer":
         from passages.evaluate import comparer
         comparer(args.run, args.reference, args.maintien_ms, args.tolerance_ms)
+    elif args.commande == "examiner-paires":
+        from passages.paires import examiner
+        examiner(args.run, args.reference, args.tolerance_ms, not args.sans_planches)
     return 0
 
 

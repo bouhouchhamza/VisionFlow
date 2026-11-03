@@ -46,6 +46,8 @@ def creer_traqueur(suivi: dict, cadence: float) -> ByteTrackTracker:
 def analyser(chemin_config: str, dossier_runs: str = "runs", limite_s: float | None = None,
              threads: int | None = None, afficher=print) -> Path:
     cfg, cfg_sha = cfgmod.charger(chemin_config)
+    sha_config = cfgmod.sha256_fichier(chemin_config).upper()
+    etat_depart = versions.etat_git(RACINE)
     video = cfg["video"]
     analyse = cfg["analyse"]
     chemin_video = str(RACINE / video["chemin"])
@@ -164,10 +166,11 @@ def analyser(chemin_config: str, dossier_runs: str = "runs", limite_s: float | N
             "run_id": run_id,
             "cree_le_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "commande": [Path(sys.executable).name, "-m", "passages", *sys.argv[1:]],
-            "config": {"chemin": str(Path(chemin_config).as_posix()), "sha256_canonique": cfg_sha, "contenu": cfg},
+            "config": {"chemin": str(Path(chemin_config).as_posix()), "sha256_canonique": cfg_sha,
+                       "sha256_fichier": sha_config, "contenu": cfg},
             "video": {"sha256": sha_video, "verifiee": True, **meta, "bilan_temps": bilan.en_dict()},
             "modele": {"chemin": analyse["modele"]["chemin"], "sha256": sha_modele, "verifie": True},
-            "versions": versions.relever(RACINE),
+            "versions": {**versions.relever(RACINE), **etat_depart},
             "execution": {
                 "limite_s": limite_s,
                 "threads_onnxruntime": threads or "defaut",

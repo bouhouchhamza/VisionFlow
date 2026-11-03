@@ -104,12 +104,18 @@ Constats (ffprobe/ffmpeg 8.1.2 et PyAV 18.1.0) :
 - Pour les images 0 à 8 997, le temps best effort de ffmpeg vaut exactement `rang/30 + 66,667 ms`
   (écart maximal 0,33 ms, arrondi du CSV).
 
-Temps retenu pour S1 — **reconstruit, pas d'origine** : `t = rang d'affichage × 1/30 s` (mode
-`rang_cadence_nominale` de `passages/video.py`). Justification : l'AVI réserve une case par image à cadence fixe, il n'y a
-aucun paquet vide, et ce calcul coïncide avec le temps de ffmpeg à une constante près. Limite : ce temps ne restitue
-pas d'éventuelles pertes d'images survenues **avant** l'encodage (caméra, enregistreur) ; le fichier ne contient
-aucune information qui permettrait de les retrouver. Le décalage de 66,7 ms est une convention de ffmpeg, pas un
-retard réel.
+Temps retenu pour S1 — **reconstruit, et hypothèse de travail propre à S1** : `t = rang d'affichage × 1/30 s` (mode
+`rang_cadence_nominale` de `passages/video.py`).
+- Éléments **compatibles** avec cette hypothèse : cadence déclarée 30/1, 9 000 paquets sans paquet vide, `dts`
+  continus, 9 000 images ≈ 300 s, soit l'écart entre les heures du nom de fichier (16:50:01 → 16:55:01, précision 1 s).
+- Ce qui **ne prouve pas** la régularité : le nombre de paquets et l'absence de paquet vide disent seulement que le
+  conteneur ne signale pas d'image sautée. Une caméra ou un enregistreur peut avoir perdu, dupliqué ou capté des images
+  à intervalles irréguliers **avant** l'encodage, sans aucune trace dans le fichier. L'accord avec ffmpeg n'est pas
+  une confirmation indépendante : ffmpeg dérive son temps des mêmes `dts` séquentiels.
+- Vérification indépendante possible, non faite : comparer, sur des mouvements réguliers (pas, portes), les vitesses
+  apparentes entre portions de la vidéo, ou trouver une horloge de référence dans la scène. Aucune horloge incrustée
+  n'est visible dans S1.
+- Le décalage de 66,7 ms est une convention de ffmpeg, pas un retard réel.
 
 Extraction de preuves sur S1 (instants exprimés dans le temps de ffmpeg, soit `t + 66,667 ms`) :
 
@@ -130,7 +136,8 @@ Conséquences :
   tout fichier contenant un paquet vide.
 - Une preuve se désigne par le **rang d'image** ; la conversion vers le temps de ffmpeg (`+66,667 ms`) est propre à ce
   fichier et ne doit pas être généralisée. Les deux dernières images ne sont pas adressables par temps dans ffmpeg.
-- H-E3-3 (« chronologie MEVA régulière ») est **confirmée pour S1 seulement**, et seulement avec le temps reconstruit.
+- H-E3-3 (« chronologie MEVA régulière ») **reste une hypothèse**, y compris pour S1 : le temps reconstruit est
+  régulier par construction, ce qui ne dit rien de la régularité de la capture.
 
 ## 5. Hypothèses issues des constats, à tester
 

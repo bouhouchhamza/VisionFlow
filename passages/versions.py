@@ -19,7 +19,7 @@ def _git(racine: Path, *args: str) -> str | None:
         r = subprocess.run(["git", "-C", str(racine), *args], capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.TimeoutExpired):
         return None
-    return r.stdout.strip() if r.returncode == 0 else None
+    return r.stdout.rstrip() if r.returncode == 0 else None
 
 
 def nom_processeur() -> str:
@@ -42,6 +42,18 @@ def version_ffmpeg() -> str | None:
     return r.stdout.splitlines()[0] if r.returncode == 0 and r.stdout else None
 
 
+def etat_git(racine: Path) -> dict:
+    """Commit courant et état « dirty » de tout le dépôt (fichiers suivis modifiés ou non suivis non ignorés)."""
+    commit = _git(racine, "rev-parse", "HEAD")
+    etat = _git(racine, "status", "--porcelain", "--untracked-files=all")
+    fichiers = [l[3:] for l in etat.splitlines()] if etat else []
+    return {
+        "git_commit": commit,
+        "git_dirty": None if etat is None else bool(fichiers),
+        "git_fichiers_modifies": fichiers[:50],
+    }
+
+
 def relever(racine: Path) -> dict:
     paquets = {}
     for p in PAQUETS:
@@ -49,8 +61,6 @@ def relever(racine: Path) -> dict:
             paquets[p] = metadata.version(p)
         except metadata.PackageNotFoundError:
             paquets[p] = None
-    commit = _git(racine, "rev-parse", "HEAD")
-    etat = _git(racine, "status", "--porcelain", "--", "passages", "configs")
     return {
         "passages": passages.__version__,
         "python": sys.version.split()[0],
@@ -58,6 +68,5 @@ def relever(racine: Path) -> dict:
         "processeur": nom_processeur(),
         "coeurs_logiques": os.cpu_count(),
         "paquets": paquets,
-        "git_commit": commit,
-        "git_modifications_locales": bool(etat) if etat is not None else None,
+        **etat_git(racine),
     }
