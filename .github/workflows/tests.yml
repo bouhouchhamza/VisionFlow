@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    # Windows: the only platform on which requirements.lock was resolved and the suite was run.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.9"
+          cache: pip
+          cache-dependency-path: requirements.lock
+
+      - name: Install pinned environment
+        run: python -m pip install -r requirements.lock
+
+      # No model or video is downloaded: tests needing models/yolox_s.onnx or the S1 video are skipped.
+      - name: Run test suite
+        run: python -m pytest -q tests -rs
