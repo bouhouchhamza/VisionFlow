@@ -18,6 +18,10 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
 *.egg-info/
 build/
 dist/
@@ -61,6 +65,8 @@ runs/
 reports/
 experiments/**/out/
 experiments/**/media/
+# Exports pour présentation (images de personnes filmées, sorties non validées) : jamais publiés.
+exports/
 *.sqlite
 *.sqlite3
 *.db
@@ -69,9 +75,14 @@ experiments/**/media/
 *.tar.gz
 *.7z
 
-# Système et éditeurs
+# Système, éditeurs et fichiers temporaires
 Thumbs.db
 desktop.ini
 .DS_Store
 .idea/
 .vscode/
+*.log
+*.tmp
+*.swp
+*~
+~$*
