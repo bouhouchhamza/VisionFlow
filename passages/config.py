@@ -81,5 +81,8 @@ def valider(cfg: dict) -> None:
             raise ConfigInvalide(f"analyse.{cle} est obligatoire")
     if analyse["cadence_analyse"] <= 0:
         raise ConfigInvalide("analyse.cadence_analyse doit être positive")
+    if "classes" in analyse:
+        raise ConfigInvalide("analyse.classes n'est pas prise en charge : le suivi associe les détections sans regarder "
+                             "leur classe, seule la classe person est analysée ; retirer la clé")
     if "maintien_ms" not in cfg["regle_passage"]:
         raise ConfigInvalide("regle_passage.maintien_ms est obligatoire")

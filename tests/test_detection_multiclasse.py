@@ -1,15 +1,17 @@
-"""Tests N0 du décodage de YOLOX (étape 2 de `docs/CONCEPTION_MULTICLASSE.md`).
+"""Tests N0 du décodage de YOLOX et du refus de `analyse.classes` (étape 2 de `docs/CONCEPTION_MULTICLASSE.md`).
 
 Les sorties de modèle sont **synthétiques** (tableaux (8400, 85) fabriqués, session ONNX Runtime simulée), sauf mention
 contraire. L'oracle est une copie figée du décodage `person` de `passages/detection.py` au commit `878f08f` : il sert de
 référence d'équivalence au bit près et ne doit pas être modifié.
 """
 
+import copy
 import hashlib
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
+import yaml
 
 from passages import config as cfgmod
 from passages import detection
@@ -385,3 +387,29 @@ def test_85_colonnes_acceptees_sans_inference(session):
 def test_vrai_modele_declare_85_colonnes():
     det = DetecteurYolox(str(MODELE), TAILLE, SEUIL, SEUIL_NMS, 1)
     assert det.session.get_outputs()[0].shape == [1, 8400, 85]
+
+
+# Refus de analyse.classes tant que le suivi ne distingue pas les classes
+
+EMPREINTE_S1 = "1887f2c22cee6bd359350196915c03a952add4159f98f4e4775e8a812869b3ac"
+
+
+@pytest.mark.parametrize("classes", [["person", "car"], ["person"]])
+def test_config_refuse_analyse_classes(classes):
+    """T21 : `analyse.classes` est refusée, même réduite à `person` ; le dictionnaire n'est pas modifié."""
+    with open(CONFIG_S1, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    cfg["analyse"]["classes"] = classes
+    avant = copy.deepcopy(cfg)
+    with pytest.raises(cfgmod.ConfigInvalide, match="analyse.classes"):
+        cfgmod.valider(cfg)
+    assert cfg == avant
+
+
+def test_config_s1_inchangee(session):
+    """T21 : la configuration S1 reste acceptée, avec l'empreinte canonique de S1, sans mutation par la fabrique."""
+    cfg, empreinte = cfgmod.charger(str(CONFIG_S1))
+    assert empreinte == EMPREINTE_S1 and "classes" not in cfg["analyse"]
+    avant = copy.deepcopy(cfg)
+    creer_detecteur(cfg["analyse"], "modele_simule.onnx", None)
+    assert cfg == avant and cfgmod.empreinte(cfg) == EMPREINTE_S1
