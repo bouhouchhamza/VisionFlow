@@ -263,8 +263,11 @@ Planned or proposed, **not implemented**:
 
 ## Licenses and data attribution
 
-- **VisionFlow code:** no license has been chosen yet (pending decision). Until a `LICENSE` file is added, no
-  rights are granted beyond what GitHub's terms allow.
+- **VisionFlow code:** no license has been chosen yet. Until a `LICENSE` file is added, no rights are granted beyond
+  what GitHub's terms allow.
+- **YOLOX-derived code:** the pre- and post-processing in `passages/detection.py` is derived from YOLOX and remains
+  under Apache-2.0; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and
+  [`third_party/YOLOX/LICENSE`](third_party/YOLOX/LICENSE).
 - **YOLOX weights:** the code is Apache-2.0, but **no separate license for the released weights was found**, and
   the terms of their training data (COCO) were not verified. The legal status of the weights is **not established**
   (D-022). They are not redistributed here.
