@@ -7,7 +7,7 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 
-from passages.detection import CLASSE_PERSONNE, DetecteurYolox
+from passages.detection import COCO_CLASSES, DetecteurYolox
 
 
 @dataclass(frozen=True)
@@ -65,18 +65,20 @@ class Detector(Protocol):
 
 
 class AdaptateurYolox:
-    """YOLOX vu par le domaine : seule la classe COCO 0 est lue, rendue sous le nom `person`."""
+    """YOLOX vu par le domaine : chaque indice de classe du modèle est rendu sous son nom COCO.
 
-    CLASSE = "person"
+    Les classes décodées sont celles du `DetecteurYolox` (par défaut la seule classe 0, `person`).
+    """
 
     def __init__(self, yolox: DetecteurYolox):
         self.yolox = yolox
 
     def detecter(self, bgr: np.ndarray) -> Detections:
-        boites, scores = self.yolox.detecter(bgr)
-        return Detections.une_classe(boites, scores, self.CLASSE, CLASSE_PERSONNE)
+        boites, scores, ids = self.yolox.detecter(bgr)
+        return Detections(boites, scores, tuple(COCO_CLASSES[i] for i in ids.tolist()), ids)
 
 
 def creer_detecteur(analyse: dict, chemin_modele: str, threads: int | None = None) -> Detector:
+    # Aucune classe transmise : seule `person` est décodée tant que le suivi associe sans regarder la classe.
     return AdaptateurYolox(DetecteurYolox(chemin_modele, tuple(analyse["modele"]["taille_entree"]),
                                           float(analyse["seuil_detection"]), float(analyse["seuil_nms"]), threads))

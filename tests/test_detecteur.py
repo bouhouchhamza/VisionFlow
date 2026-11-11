@@ -37,8 +37,8 @@ class SansDetecter:
 class FauxYolox:
     """Rend des tableaux fixés, comme `DetecteurYolox.detecter`."""
 
-    def __init__(self, boites, scores):
-        self.sortie = (boites, scores)
+    def __init__(self, boites, scores, ids=None):
+        self.sortie = (boites, scores, np.zeros(len(boites), np.int64) if ids is None else ids)
 
     def detecter(self, bgr):
         return self.sortie
@@ -123,13 +123,15 @@ def test_fabrique_reprend_les_parametres_de_la_configuration():
     assert isinstance(d.yolox, DetecteurYolox)
     assert d.yolox.taille == tuple(analyse["modele"]["taille_entree"])
     assert (d.yolox.seuil, d.yolox.seuil_nms) == (float(analyse["seuil_detection"]), float(analyse["seuil_nms"]))
+    assert d.yolox.classes == (0,)
 
 
 def comparer_a_yolox(yolox, img):
-    boites, scores = yolox.detecter(img)
+    boites, scores, ids = yolox.detecter(img)
     d = AdaptateurYolox(yolox).detecter(img)
     assert d.boites.dtype == boites.dtype == np.float32 and d.scores.dtype == scores.dtype == np.float32
     assert np.array_equal(d.boites, boites) and np.array_equal(d.scores, scores)
+    assert ids.dtype == np.int64 and ids.tolist() == [0] * len(boites) and np.array_equal(d.ids_modele, ids)
     assert d.classes == ("person",) * len(boites)
     return len(d)
 
