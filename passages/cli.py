@@ -83,6 +83,12 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--tolerance-ms", type=int, default=1000)
     e.add_argument("--sans-planches", action="store_true")
 
+    nr = sp.add_parser("comparer-runs", help="non-régression technique : un run candidat face à un run de référence")
+    nr.add_argument("--reference", required=True)
+    nr.add_argument("--candidat", required=True)
+    nr.add_argument("--jusqu-a-ms", type=int, help="ne comparer que les images et franchissements jusqu'à cet instant")
+    nr.add_argument("--sortie", help="dossier des rapports (défaut : runs/non_regression/comparaisons)")
+
     args = p.parse_args(argv)
     if args.commande == "analyser":
         from passages.run import analyser
@@ -101,6 +107,10 @@ def main(argv: list[str] | None = None) -> int:
     elif args.commande == "examiner-paires":
         from passages.paires import examiner
         examiner(args.run, args.reference, args.tolerance_ms, not args.sans_planches)
+    elif args.commande == "comparer-runs":
+        from passages.non_regression import IDENTIQUE, comparer_et_ecrire
+        res = comparer_et_ecrire(args.reference, args.candidat, args.jusqu_a_ms, args.sortie)
+        return 0 if res["verdict"] == IDENTIQUE else 1
     return 0
 
 

@@ -19,6 +19,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python -m passages rendre --run runs/<run_id>                         # runs/<run_id>/rendus/video_annotee.mp4
 .\.venv\Scripts\python -m passages annoter --config configs/s1_g420.yaml --annotateur <nom> --passe 1 --echantillon S1
 .\.venv\Scripts\python -m passages comparer --run runs/<run_id> --reference data/annotations/<sha16>/<nom>_passe1.json
+.\.venv\Scripts\python -m passages comparer-runs --reference runs/<run_a> --candidat runs/<run_b>   # non-régression (§7)
 ```
 
 `analyser` vérifie les empreintes de la vidéo et du modèle avant de commencer. Il écrit dans `runs/<run_id>.tmp/`,
@@ -139,3 +140,38 @@ antérieur au premier commit, n'a pas de commit enregistré.
 - `lost_track_buffer` vaut 60, soit 2 s, et la cadence d'analyse 10 images/s : ces valeurs de départ ne sont pas réglées.
 - Le statut juridique des poids YOLOX et les conditions des données COCO restent non établis (D-022).
 - Le comparateur ne compare pas encore deux passes humaines entre elles.
+
+## 7. S1, baseline technique non validée, et non-régression (2026-11-11)
+
+L'annotation de S1 est difficile, à cause de la densité des passages au début. S1 est donc conservé comme **baseline
+technique non validée** : le run `20261103T172241Z-b3b507` sert de référence de **comportement** pour les
+refactorings, sans que l'évaluation soit terminée. Une égalité de sorties prouve que le comportement est conservé,
+pas qu'il est juste. Plan : `docs/PLAN_DECOUPLAGE_DETECTEUR.md`.
+
+Commande :
+
+```powershell
+.\.venv\Scripts\python -m passages comparer-runs --reference <run> --candidat <run> [--jusqu-a-ms T] [--sortie <dossier>]
+```
+
+Verdicts : `IDENTIQUE`, `ECARTS_D_ARRONDI` (écarts d'un pas d'arrondi sur les boîtes, les scores, `u` ou `point`),
+`DIFFERENT` (avec la première divergence, les franchissements manquants et supplémentaires) et `NON_COMPARABLE`
+(entrées, versions, processeur, threads ou étendue différents). Le code de sortie vaut 0 seulement pour `IDENTIQUE`.
+Les rapports vont dans `runs/non_regression/comparaisons/` par défaut ; l'outil refuse d'écrire dans un run comparé.
+
+Contrôles du comparateur :
+- 17 tests N0 sur des runs synthétiques : copie exacte, métadonnées seules, ancien manifeste, un pas d'arrondi,
+  boîte décalée, direction inversée, temps décalé, franchissement manquant ou supplémentaire, identifiant de piste,
+  statut de passage et statistiques, version de paquet, threads, run limité en mode complet et tronqué, borne trop
+  large, divergence avant la borne, absence d'écriture dans les runs comparés.
+- Sur des données réelles, l'essai de 20 s (`runs/essais/20261103T172153Z-b5f6a3`) est comparé à S1, avec les
+  rapports dans `runs/non_regression/controles_comparateur/` :
+
+| Mode | Verdict attendu | Verdict obtenu | Détail |
+|---|---|---|---|
+| Tronqué à 20 000 ms | IDENTIQUE | IDENTIQUE | 201 images sur 201, 21 franchissements sur 21, statistiques égales |
+| Complet | NON_COMPARABLE | NON_COMPARABLE | `limite_s`, images décodées et analysées, bilan du temps différents |
+| Tronqué à 300 000 ms | DIFFERENT | DIFFERENT | 3 000 images contre 201 ; franchissement manquant : piste 23, sortie, 181 900 ms |
+
+Les empreintes SHA-256 des fichiers de S1 et de l'essai sont inchangées après ces contrôles
+(`docs/PLAN_DECOUPLAGE_DETECTEUR.md` §3.5).
