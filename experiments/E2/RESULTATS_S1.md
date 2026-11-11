@@ -238,3 +238,49 @@ l'analyse ; `detecteur.py` et `run.py` sont commités avec les empreintes testé
 La rejouée complète couvre 3 000 images sur 3 000 et 22 franchissements sur 22, avec 24 pistes et 14 passages
 retenus, sans écart d'arrondi. Les empreintes SHA-256 de S1 et de l'essai sont inchangées. Durée de calcul :
 2 532 s, notée sans interprétation. Équivalence de comportement, pas une mesure de justesse.
+
+### Décodage multi-étiquette (étape 2, D-026) : rejouées de non-régression (2026-11-11)
+
+Changement : `DetecteurYolox` décode une liste de classes COCO (par défaut la seule classe 0), avec un score
+multi-étiquette et une NMS par classe ; il vérifie à la construction que la sortie déclarée du modèle compte 85
+colonnes ; `AdaptateurYolox` nomme les indices ; `config.valider` refuse `analyse.classes`. `creer_detecteur` ne
+transmet aucune classe : la production reste en mode `person`. Inchangés : `run.py` (empreinte git `dc786b85…`),
+`configs/s1_g420.yaml` (`cb4ab36a…`, empreinte canonique `1887f2c2…`), ByteTrack, identifiants de piste, événements,
+format des runs, comparateur. Proposition et corrections : `docs/ETAPE2_DECODAGE_MULTICLASSE.md`.
+
+Tests (`tests/test_detection_multiclasse.py`, sorties de modèle synthétiques sauf T10) :
+- l'oracle, copie figée de `decoder` et `nms` du commit `878f08f`, a d'abord été vérifié égal au bit près au décodeur
+  **non modifié** sur 20 sorties synthétiques, dont 10 avec de nombreux scores ex aequo (T1, commit `b194549`) ;
+- mode `person` égal à l'oracle au bit près, ordre compris : 20 sorties synthétiques (T2), ex aequo et stabilité sur
+  dix appels (T3), score égal à `float32(0,1)` exclu et valeur suivante gardée (T4), personne non dominante gardée
+  (T5), chevauchements autour de 0,45 (T6), cas vide (T7), classe non demandée (T8), bornage après la NMS (T9), sortie
+  réelle du modèle sur la première image de S1 (T10) ;
+- multi-classe : vocabulaire et empreinte de la liste (T11), filtrage (T12), personne et voiture chevauchantes gardées
+  (T13), même ancre pour deux classes (T14), doublon « car » / « truck » connu (T15), ordre de sortie (T16), bloc des
+  personnes égal au mode `person` seul (T17), classes invalides (T18), adaptateur (T19), fabrique en mode `person`
+  (T20) ; sortie à 84, 86 colonnes ou dimension symbolique ou inconnue refusée, 85 acceptée sans inférence, vrai
+  modèle à `[1, 8400, 85]` ;
+- configuration : `analyse.classes` refusée sans mutation, configuration S1 acceptée avec son empreinte (T21) ;
+- `tests/test_detecteur.py` adapté au triplet `(boîtes, scores, ids)` (T22).
+
+Résultats : **171 tests passent sur ce poste, aucun ignoré**. Dans un clone temporaire sans modèle ni vidéo : 166
+passent, 5 ignorés (les tests qui exigent le modèle ou la vidéo S1).
+
+Rejouées dans `runs/non_regression/multiclasse_etape2/`, rapports dans son sous-dossier `comparaisons/`. Code : commit
+`9708503`, **arbre propre** (manifestes : `git_dirty` faux, aucun fichier modifié). Threads ONNX Runtime par défaut.
+
+| Run | Étendue | Comparé à | Verdict |
+|---|---|---|---|
+| `20261111T155110Z-f79da9` | `--limite-s 20` | essai `20261103T172153Z-b5f6a3` ; S1 tronqué à 20 000 ms ; rejouée `20261111T132821Z-a4962c` | **IDENTIQUE** ×3 |
+| `20261111T155334Z-bc1823` | complète | S1 `20261103T172241Z-b3b507` ; rejouée `20261111T133101Z-4c907c` | **IDENTIQUE** ×2 |
+
+- Rejouée de 20 s : 201 images sur 201, 21 franchissements sur 21, aucun écart d'arrondi.
+- Rejouée complète : 3 000 images sur 3 000, 22 franchissements sur 22, 24 pistes, 14 passages retenus, aucun écart
+  d'arrondi.
+- Empreintes SHA-256 inchangées après les rejouées : S1 (`evenements.json` `701EFF4E…`, `manifest.json` `C77AB752…`,
+  `pistes.jsonl` `80831D0C…`), essai (`E04ED57E…`, `96942141…`, `47D65A7F…`), vidéo S1 (`19A8159A…CE4`). R1 et R2 non
+  utilisées.
+- Durées de calcul relevées dans les manifestes, notées sans interprétation (ce n'est pas un benchmark) : 115,2 s pour
+  la rejouée de 20 s, 1 582,5 s pour la rejouée complète.
+- Équivalence de comportement, **pas une mesure de justesse**. Aucune autre classe que `person` n'a été analysée sur
+  une vidéo.

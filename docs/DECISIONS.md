@@ -7,7 +7,7 @@
 > Règles du journal : une décision n'est jamais effacée ; si elle change, on ajoute une entrée qui la remplace
 > et on note « remplacée par D-xxx ». Une proposition ne devient confirmée que par validation explicite du porteur.
 
-Dernière mise à jour : 2026-11-11.
+Dernière mise à jour : 2026-11-11 (D-026).
 
 ## Synthèse
 
@@ -38,6 +38,7 @@ Dernière mise à jour : 2026-11-11.
 | D-023 | Mode de calcul du temps choisi par fichier après E3 | Proposition (appliquée au prototype) | G0 |
 | D-024 | Annotation de référence : faits observés, maintien en paramètre | Proposition (protocole E1 v2) | Après la passe 1 de S1 |
 | D-025 | Détecteur derrière une interface ; refactorings vérifiés par non-régression | **Confirmé pour le prototype** (interface, 2026-11-11) / Proposition (règle générale) | Second détecteur ou classes |
+| D-026 | Décodage multi-étiquette de YOLOX, NMS par classe, production limitée à `person` | Proposition (exécutée, rejouées IDENTIQUES) | Validation du porteur ; revue à l'étape du suivi par classe |
 
 ## Entrées
 
@@ -254,3 +255,41 @@ Dernière mise à jour : 2026-11-11.
   attente de validation du commit) : `detecter` rend désormais un `Detections` (boîtes, scores, noms de classe,
   indices de classe du modèle). YOLOX passe par `AdaptateurYolox`, qui fixe la classe `person` ; `detection.py` ne
   change pas. Rejouées IDENTIQUES à S1 (`experiments/E2/RESULTATS_S1.md` §7). Le multi-classe n'est pas activé.
+
+### D-026 — Décodage multi-étiquette de YOLOX, NMS par classe, production limitée à `person` · Proposition
+- **Contexte** : étape 2 de `docs/CONCEPTION_MULTICLASSE.md`, proposition `docs/ETAPE2_DECODAGE_MULTICLASSE.md`. Plan
+  approuvé par le porteur le 2026-11-11, avec ces choix : refus explicite de `analyse.classes`, familles reportées,
+  vérification du nombre de colonnes de sortie du modèle, rejouées sur un commit local propre.
+- **Mis en œuvre** (commits `b194549`, `7936546`, `9708503`) :
+  - `COCO_CLASSES` : les 80 noms de `yolox/data/datasets/coco_classes.py` au tag `0.1.1rc0`, dans l'ordre des
+    colonnes 5 à 84 de la sortie. Liste téléchargée depuis le tag et comparée à la constante le 2026-11-11 : identique ;
+    son empreinte SHA-256 est figée dans un test. `person` = 0, `bicycle` = 1, `car` = 2, `motorcycle` = 3, `bus` = 5,
+    `truck` = 7.
+  - `DetecteurYolox(..., classes=(0,))` : indices entiers distincts dans [0, 79]. Pour chaque classe demandée, par indice
+    croissant : score = objectness × probabilité de la classe (multi-étiquette, sans argmax), filtre strict au seuil
+    global (float Python, donc comparaison en float32), boîtes divisées par le ratio **avant** la NMS, NMS de la classe
+    avec la fonction `nms` inchangée. Sortie : boîtes, scores et indices de classe int64, par classe croissante puis
+    dans l'ordre de la NMS. Sans classe indiquée, seule la classe 0 est décodée.
+  - Vérification à la construction, sans inférence ni modification de la session : la dernière dimension déclarée de
+    la sortie doit être l'entier 85 (4 + 1 + 80). Une dimension symbolique ou inconnue est **refusée** (`ValueError`),
+    car rien ne garantirait alors que les colonnes correspondent au vocabulaire. `models/yolox_s.onnx` déclare
+    `[1, 8400, 85]`.
+  - `AdaptateurYolox` nomme chaque indice par `COCO_CLASSES` ; `creer_detecteur` ne transmet aucune classe.
+  - `config.valider` refuse `analyse.classes` (`ConfigInvalide`), même réduite à `[person]`, avant toute création de
+    dossier de run et sans modifier la configuration.
+  - Inchangés : `run.py` (empreinte git `dc786b85…`), `configs/s1_g420.yaml` (`cb4ab36a…`, empreinte canonique
+    `1887f2c2…`), ByteTrack, identifiants de piste, événements, format des runs, comparateur.
+- **Vérifié** : 171 tests passent sur le poste, aucun ignoré ; dans un clone sans modèle ni vidéo, 166 passent et 5
+  sont ignorés (ceux qui exigent le modèle ou la vidéo). Le décodage `person` est égal au bit près à une copie figée de
+  l'ancien décodage, sur des sorties synthétiques et sur la sortie réelle de la première image de S1. Rejouées de
+  20 s et complète **IDENTIQUES** à S1, à l'essai et aux rejouées de l'étape 1 (`experiments/E2/RESULTATS_S1.md` §7).
+  C'est une équivalence de comportement, **pas une mesure de justesse**, ni pour les personnes ni pour les autres
+  classes, qui n'ont été évaluées sur aucune vidéo.
+- **Effets connus en multi-classe (non activé)** : une ancre au-dessus du seuil pour « car » et « truck » donne deux
+  détections de même boîte (pas de NMS entre classes) ; le seuil de 0,1, choisi pour les personnes de S1, n'a été
+  examiné pour aucune autre classe **[Hypothèse : trop bas]**.
+- **Hors périmètre** : familles de suivi, suivi par classe, identifiants, événements, format v2, seuils par classe,
+  normalisation de l'entrée par la démo du tag (`docs/ETAPE2_DECODAGE_MULTICLASSE.md` §1).
+- **Dépendances** : aucune nouvelle.
+- **À trancher** : validation par le porteur ; la levée du refus de `analyse.classes` attend un suivi qui distingue
+  les classes.

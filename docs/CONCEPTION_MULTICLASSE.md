@@ -3,11 +3,17 @@
 > Statut : **[Proposition]**, étude de conception seulement. Aucun code, aucune configuration, aucun run modifié ou
 > créé. État étudié : commit `5a6ddbc` (après D-025). Date : 2026-11-11.
 >
-> Avancement : **étape 1 exécutée le 2026-11-11** (validée par le porteur), rejouées IDENTIQUES, non commitée.
-> Résultats : `experiments/E2/RESULTATS_S1.md` §7. Écart à la conception : `detection.py` n'est pas modifié ; la
-> classe est ajoutée par un adaptateur (`AdaptateurYolox`, dans `detecteur.py`) qui enveloppe `DetecteurYolox`. Les
-> étapes 2 à 7 restent des propositions. L'immuabilité de `Detections` porte sur sa structure (champs non
-> réaffectables), pas sur le contenu des tableaux NumPy, partagés sans copie avec le détecteur.
+> Avancement : **étape 1 exécutée le 2026-11-11** (validée par le porteur), rejouées IDENTIQUES, commitée ensuite
+> (`971e5b4`). Résultats : `experiments/E2/RESULTATS_S1.md` §7. Écart à la conception : `detection.py` n'est pas
+> modifié ; la classe est ajoutée par un adaptateur (`AdaptateurYolox`, dans `detecteur.py`) qui enveloppe
+> `DetecteurYolox`. L'immuabilité de `Detections` porte sur sa structure (champs non réaffectables), pas sur le contenu
+> des tableaux NumPy, partagés sans copie avec le détecteur.
+>
+> **Étape 2 exécutée le 2026-11-11** (D-026, Proposition ; `docs/ETAPE2_DECODAGE_MULTICLASSE.md`), rejouées
+> IDENTIQUES. Écarts à la conception : NMS **par classe** seulement, les familles sont reportées à l'étape du suivi
+> (étape 4) ; `analyse.classes` est **refusée** à la validation tant que le suivi ne distingue pas les classes. La
+> production reste en mode `person`. Les étapes 3 à 7 restent des propositions. Le tableau du §1 décrit l'état
+> antérieur à l'étape 1 ; les lignes citées de `detection.py` ont changé à l'étape 2.
 
 ## 1. État actuel : comment « personne » est imposée
 
@@ -26,7 +32,8 @@ Faits vérifiés le 2026-11-11 :
 - **[Confirmé]** Le modèle `yolox_s.onnx` rend `[1, 8400, 85]` : 4 coordonnées, l'objectness et **80 scores de
   classe**. Les classes sont donc déjà calculées, puis ignorées. L'ordre des classes (COCO, personne = 0) est celui du
   dépôt YOLOX (`yolox/data/datasets/coco_classes.py`) : **[Hypothèse]** pour les autres indices, à vérifier dans le
-  source avant usage.
+  source avant usage. *Vérifié depuis (étape 2, D-026) : les 80 noms du tag `0.1.1rc0` sont repris tels quels dans
+  `COCO_CLASSES` ; `car` = 2, `bus` = 5, `truck` = 7.*
 - **[Confirmé]** `trackers` 2.6.1 `ByteTrackTracker` associe par IoU seule, **sans regarder la classe**. Il rend un
   sous-ensemble des détections d'entrée (`detections[idx]`), donc `class_id` est transporté, mais une même piste peut
   changer de classe d'une image à l'autre. Ses identifiants viennent d'un compteur propre à chaque instance.
