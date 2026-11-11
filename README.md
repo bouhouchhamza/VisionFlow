@@ -245,7 +245,9 @@ Planned or proposed, **not implemented**:
 
 1. Human reference annotation of S1 (protocol E1 v2) and first error measurement (as a tuning result).
 2. Multi-class support in small steps, each required to reproduce the person-only reference exactly
-   (`docs/CONCEPTION_MULTICLASSE.md`; step 2 proposal: `docs/ETAPE2_DECODAGE_MULTICLASSE.md`).
+   (`docs/CONCEPTION_MULTICLASSE.md`). Steps 1 and 2 are done: the detector can decode several COCO classes, but
+   production stays person-only and `analyse.classes` is refused until tracking separates classes
+   (`docs/ETAPE2_DECODAGE_MULTICLASSE.md`, D-026).
 3. Evaluation on held-out clips, only with a frozen configuration.
 4. Proposals in `docs/IMPLEMENTATION_PLAN.md`: human review, indicators and reports, SQLite storage, recorded camera
    segments.

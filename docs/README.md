@@ -21,11 +21,11 @@ historique : un document daté décrit l'état à sa date, il n'est pas réécri
 | `ARCHITECTURE.md` | Architecture cible, options de stack, licences code / poids / données | Cadrage du 2026-11-03 ; son en-tête « Rien n'est encore implémenté » date d'avant le prototype |
 | `DATA_AND_RULES.md` | Modèle de données cible, vocabulaire contrôlé | Proposition |
 | `IMPLEMENTATION_PLAN.md` | Expériences E0 à E6, phases, portes de décision | Proposition |
-| `DECISIONS.md` | Journal des décisions D-001 à D-025 | Référence ; à lire avant toute proposition technique |
+| `DECISIONS.md` | Journal des décisions D-001 à D-026 | Référence ; à lire avant toute proposition technique |
 | `AUDIT_ARCHITECTURE.md` | Audit du prototype et évolution possible | Proposition |
 | `PLAN_DECOUPLAGE_DETECTEUR.md` | Interface `Detector` | Exécuté (D-025) |
-| `CONCEPTION_MULTICLASSE.md` | Plan multi-classe en sept étapes | Proposition ; l'étape 1, notée « non commitée » dans l'en-tête, a été commitée ensuite (`971e5b4`) |
-| `ETAPE2_DECODAGE_MULTICLASSE.md` | Décodage multi-classe de YOLOX | Proposition, non exécutée |
+| `CONCEPTION_MULTICLASSE.md` | Plan multi-classe en sept étapes | Proposition ; étapes 1 et 2 exécutées, production toujours en mode `person` |
+| `ETAPE2_DECODAGE_MULTICLASSE.md` | Décodage multi-classe de YOLOX | Exécutée avec corrections (D-026, Proposition) ; multi-classe non activé |
 
 ## Expériences
 
