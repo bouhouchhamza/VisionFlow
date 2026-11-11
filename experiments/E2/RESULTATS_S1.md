@@ -200,3 +200,41 @@ environnement conforme à `requirements.lock`. Rejouées dans `runs/non_regressi
 - Durées de calcul notées sans interprétation : 2 621 s et 1 516 s pour les deux rejouées complètes, contre 616 s le
   2026-11-03, avec la même configuration et le même poste. La cause n'est pas mesurée ; ce n'est pas un benchmark.
 - Ce résultat établit une **équivalence de comportement**, pas une justesse : S1 n'est toujours pas annotée.
+
+### Type `Detections` (étape 1 de `docs/CONCEPTION_MULTICLASSE.md`) : rejouées de non-régression (2026-11-11)
+
+Changement : `Detector.detecter` rend un `Detections` (boîtes float32 (N, 4), scores float32 (N,), noms de classe,
+indices de classe du modèle en int64), dont les invariants sont vérifiés à la construction. `AdaptateurYolox` reprend
+sans copie les tableaux de `DetecteurYolox` et y ajoute la classe `person` (indice COCO 0). `run.py` ne fait que lire
+`boites` et `scores` ; la classe transmise au suivi reste forcée à 0. Inchangés : `passages/detection.py`, ByteTrack,
+seuils, configuration (empreinte git `cb4ab36a…`), événements, identifiants de piste, format des runs.
+
+Portée de l'immuabilité : `Detections` est un `dataclass(frozen=True)`. Sa **structure** est figée : on ne peut pas
+réaffecter ses champs. Le **contenu** de ses tableaux NumPy ne l'est pas : `une_classe` reprend sans copie les
+tableaux du détecteur, qui restent partagés et modifiables en place par quiconque en détient une référence. Le
+pipeline actuel ne les modifie pas (`run.py` les convertit par `astype`, qui crée une copie). Un futur consommateur
+qui voudrait les modifier devra d'abord les copier.
+
+Tests : 68 passent, aucun ignoré. `tests/test_detecteur.py` couvre :
+- les invariants (formes, types, longueurs, noms vides, immuabilité) et le cas vide ;
+- la reprise sans copie, et l'adaptateur sur un faux YOLOX, vide ou non ;
+- l'égalité de l'adaptateur et de YOLOX sur deux images synthétiques. Elles ne donnent **aucune détection**, donc ce
+  test ne couvre que le cas vide ;
+- l'égalité de l'adaptateur et de YOLOX sur la première image de S1, avec au moins une détection.
+
+Rejouées dans `runs/non_regression/multiclasse_etape1/`, rapports dans son sous-dossier `comparaisons/`. Code :
+commit `5a6ddbc` plus des modifications non commitées. Les manifestes listent `passages/detecteur.py`,
+`passages/run.py`, `tests/test_detecteur.py` et `docs/CONCEPTION_MULTICLASSE.md`, ce dernier non suivi par git.
+Empreintes git des fichiers modifiés, identiques avant et après les rejouées : `d6a72557…` (`detecteur.py`),
+`dc786b85…` (`run.py`), `b8a60a7a…` (`test_detecteur.py`). Après les rejouées, seule la docstring de
+`test_detecteur.py` a été corrigée (elle disait toutes les images synthétiques). Ce fichier n'intervient pas dans
+l'analyse ; `detecteur.py` et `run.py` sont commités avec les empreintes testées.
+
+| Run | Étendue | Comparé à | Verdict |
+|---|---|---|---|
+| `20261111T132821Z-a4962c` | `--limite-s 20` | essai `20261103T172153Z-b5f6a3` ; S1 tronqué à 20 000 ms ; rejouée `20261111T124527Z-e027d2` | **IDENTIQUE** ×3 |
+| `20261111T133101Z-4c907c` | complète | S1 `20261103T172241Z-b3b507` ; rejouée `20261111T124731Z-828fc6` | **IDENTIQUE** ×2 |
+
+La rejouée complète couvre 3 000 images sur 3 000 et 22 franchissements sur 22, avec 24 pistes et 14 passages
+retenus, sans écart d'arrondi. Les empreintes SHA-256 de S1 et de l'essai sont inchangées. Durée de calcul :
+2 532 s, notée sans interprétation. Équivalence de comportement, pas une mesure de justesse.

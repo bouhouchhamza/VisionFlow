@@ -250,3 +250,7 @@ Dernière mise à jour : 2026-11-11.
   second détecteur (RF-DETR). Chacun fera l'objet d'une entrée propre.
 - **Dépendances** : aucune nouvelle (`typing.Protocol` fait partie de la bibliothèque standard).
 - **Révision** : quand un second détecteur sera décidé, ou quand l'interface devra transporter des classes.
+- **Complément du 2026-11-11** (étape 1 de `docs/CONCEPTION_MULTICLASSE.md`, exécutée sur demande du porteur, en
+  attente de validation du commit) : `detecter` rend désormais un `Detections` (boîtes, scores, noms de classe,
+  indices de classe du modèle). YOLOX passe par `AdaptateurYolox`, qui fixe la classe `person` ; `detection.py` ne
+  change pas. Rejouées IDENTIQUES à S1 (`experiments/E2/RESULTATS_S1.md` §7). Le multi-classe n'est pas activé.

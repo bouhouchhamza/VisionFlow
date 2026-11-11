@@ -97,10 +97,11 @@ def analyser(chemin_config: str, dossier_runs: str = "runs", limite_s: float | N
                     continue
                 bgr = image.trame.to_ndarray(format="bgr24")
                 t2 = time.perf_counter()
-                boites, scores = detecteur.detecter(bgr)
+                detections = detecteur.detecter(bgr)
                 t3 = time.perf_counter()
-                dets = sv.Detections(xyxy=boites.astype(np.float32), confidence=scores.astype(np.float32),
-                                     class_id=np.zeros(len(scores), dtype=int))
+                dets = sv.Detections(xyxy=detections.boites.astype(np.float32),
+                                     confidence=detections.scores.astype(np.float32),
+                                     class_id=np.zeros(len(detections), dtype=int))
                 suivis = traqueur.update(dets, timestamp=image.t_s)
                 objets = []
                 for xyxy, conf, tid in zip(suivis.xyxy, suivis.confidence if suivis.confidence is not None else
@@ -121,7 +122,7 @@ def analyser(chemin_config: str, dossier_runs: str = "runs", limite_s: float | N
                 images_analysees += 1
                 images_temps_reconstruit_analysees += int(image.reconstruit)
                 f_pistes.write(json.dumps({"num_image": image.index, "t_ms": image.t_ms, "pts": image.pts,
-                                           "temps_reconstruit": image.reconstruit, "detections_brutes": len(scores),
+                                           "temps_reconstruit": image.reconstruit, "detections_brutes": len(detections),
                                            "objets": objets}, ensure_ascii=False) + "\n")
                 if images_analysees % 300 == 0:
                     ecoule = time.perf_counter() - t_mur_debut
