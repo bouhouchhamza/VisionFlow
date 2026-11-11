@@ -175,3 +175,28 @@ Contrôles du comparateur :
 
 Les empreintes SHA-256 des fichiers de S1 et de l'essai sont inchangées après ces contrôles
 (`docs/PLAN_DECOUPLAGE_DETECTEUR.md` §3.5).
+
+### Découplage du détecteur (D-025) : rejouées de non-régression
+
+Configuration `configs/s1_g420.yaml` inchangée (même empreinte canonique), threads ONNX Runtime par défaut, même poste,
+environnement conforme à `requirements.lock`. Rejouées dans `runs/non_regression/`, rapports dans
+`runs/non_regression/comparaisons/`.
+
+| Étape | Run | Code | Comparé à | Verdict |
+|---|---|---|---|---|
+| Rejouée avant refactoring | `20261111T120056Z-1a879f` (complet) | commit `3d34b9b`, arbre propre | S1 `20261103T172241Z-b3b507` | **IDENTIQUE** |
+| Rejouée courte après refactoring | `20261111T124527Z-e027d2` (`--limite-s 20`) | `3d34b9b` + refactoring non commité | essai `20261103T172153Z-b5f6a3` ; S1 tronqué à 20 000 ms | **IDENTIQUE** ; **IDENTIQUE** |
+| Rejouée complète après refactoring | `20261111T124731Z-828fc6` (complet) | `3d34b9b` + refactoring non commité | S1 ; rejouée `20261111T120056Z-1a879f` | **IDENTIQUE** ; **IDENTIQUE** |
+
+- Les verdicts IDENTIQUE couvrent 3 000 images sur 3 000, 22 franchissements sur 22 (identifiants, pistes, directions,
+  `t_ms`, `num_image`), les passages dérivés, les doublons probables, les débuts et fins de pistes et les statistiques
+  recalculées. Ils ne relèvent aucun écart d'arrondi.
+- **Provenance de S1 établie a posteriori** : le code du commit `3d34b9b`, dont le chemin d'analyse est inchangé
+  depuis `2517bc1`, reproduit S1 à l'identique. S1 reste la référence.
+- Les rejouées après refactoring ont été produites avant le commit, sur l'arbre de travail. Leurs manifestes donnent
+  `git_commit` = `3d34b9b` et `git_dirty` = vrai, et listent exactement `passages/run.py`, `passages/detecteur.py` et
+  `tests/test_detecteur.py`. Empreintes git de ces fichiers pendant les rejouées, identiques à celles du commit du
+  refactoring : `a32a393e…` (`run.py`), `cac94128…` (`detecteur.py`), `7874b9bf…` (`test_detecteur.py`).
+- Durées de calcul notées sans interprétation : 2 621 s et 1 516 s pour les deux rejouées complètes, contre 616 s le
+  2026-11-03, avec la même configuration et le même poste. La cause n'est pas mesurée ; ce n'est pas un benchmark.
+- Ce résultat établit une **équivalence de comportement**, pas une justesse : S1 n'est toujours pas annotée.

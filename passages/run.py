@@ -16,7 +16,7 @@ from trackers import ByteTrackTracker
 from passages import config as cfgmod
 from passages import versions
 from passages.crossing import DetecteurFranchissements, Ligne, deriver_passages_machine, doublons_probables
-from passages.detection import DetecteurYolox
+from passages.detecteur import creer_detecteur
 from passages.video import BilanTemps, Echantillonneur, lire, metadonnees
 
 RACINE = Path(__file__).resolve().parent.parent
@@ -69,8 +69,7 @@ def analyser(chemin_config: str, dossier_runs: str = "runs", limite_s: float | N
     largeur, hauteur = meta["largeur"], meta["hauteur"]
     lignes = [Ligne.depuis_config(l, largeur, hauteur) for l in cfg["lignes"]]
     cadence = float(analyse["cadence_analyse"])
-    detecteur = DetecteurYolox(chemin_modele, tuple(analyse["modele"]["taille_entree"]), float(analyse["seuil_detection"]),
-                               float(analyse["seuil_nms"]), threads)
+    detecteur = creer_detecteur(analyse, chemin_modele, threads)
     traqueur = creer_traqueur(analyse["suivi"], cadence)
     franchisseur = DetecteurFranchissements(lignes)
     echantillon = Echantillonneur(cadence)

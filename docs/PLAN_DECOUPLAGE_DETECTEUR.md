@@ -1,7 +1,8 @@
 # Plan du premier refactoring : découpler YOLOX de `run.py`
 
 > Statut : **validé par le porteur le 2026-11-11** (deux commits locaux, rejouées autorisées, interface nommée
-> `Detector`) ; exécution en cours. Les résultats sont consignés dans `experiments/E2/RESULTATS_S1.md` §7.
+> `Detector`) ; **exécuté le 2026-11-11**, tous les verdicts IDENTIQUE. Résultats : `experiments/E2/RESULTATS_S1.md`
+> §7 ; décision : D-025.
 > Source : `docs/AUDIT_ARCHITECTURE.md` §4 (couplage C1) et §8 (étapes 1 à 3). Plan rédigé sur l'état `d73403c`.
 
 ## 0. Cadre

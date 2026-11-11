@@ -7,7 +7,7 @@
 > Règles du journal : une décision n'est jamais effacée ; si elle change, on ajoute une entrée qui la remplace
 > et on note « remplacée par D-xxx ». Une proposition ne devient confirmée que par validation explicite du porteur.
 
-Dernière mise à jour : 2026-11-03.
+Dernière mise à jour : 2026-11-11.
 
 ## Synthèse
 
@@ -37,6 +37,7 @@ Dernière mise à jour : 2026-11-03.
 | D-022 | Détecteur, suivi et versions du prototype | Confirmé pour le prototype | Revoir à G0 |
 | D-023 | Mode de calcul du temps choisi par fichier après E3 | Proposition (appliquée au prototype) | G0 |
 | D-024 | Annotation de référence : faits observés, maintien en paramètre | Proposition (protocole E1 v2) | Après la passe 1 de S1 |
+| D-025 | Détecteur derrière une interface ; refactorings vérifiés par non-régression | **Confirmé pour le prototype** (interface, 2026-11-11) / Proposition (règle générale) | Second détecteur ou classes |
 
 ## Entrées
 
@@ -227,3 +228,25 @@ Dernière mise à jour : 2026-11-03.
   demi-tours sans franchissement et des intervalles non observables, dans un outil qui n'affiche aucune sortie de
   l'analyse. La règle de maintien H est appliquée **à l'évaluation**, de façon identique à la référence et à la
   machine ; le rapport montre l'effet de H = 0, 500, 1 000 et 2 000 ms.
+
+### D-025 — Détecteur derrière une interface ; refactorings vérifiés par non-régression · Confirmé pour le prototype (interface, 2026-11-11) / Proposition (règle générale)
+- **Constat** : `docs/AUDIT_ARCHITECTURE.md` §4 (couplage C1) ; `run.py` importait et construisait `DetecteurYolox`
+  directement. Plan validé par le porteur le 2026-11-11 : `docs/PLAN_DECOUPLAGE_DETECTEUR.md`.
+- **Mis en œuvre** :
+  - `passages/detecteur.py` : `Protocol` `Detector` (nom retenu par le porteur) avec une méthode
+    `detecter(bgr) -> (boîtes xyxy float32 (N, 4), scores float32 (N,))`. Entrée : BGR uint8 en pleine résolution ;
+    sortie bornée à l'image, une seule classe (personne), ordre déterministe. Fabrique
+    `creer_detecteur(analyse, chemin_modele, threads)`.
+  - `run.py` n'importe plus que la fabrique. `passages/detection.py`, le suivi, la ligne, les seuils,
+    `configs/s1_g420.yaml` et le format des événements sont inchangés. YOLOX reste l'unique implémentation (D-022).
+- **Vérifié** (`experiments/E2/RESULTATS_S1.md` §7) : la rejouée du code avant refactoring et la rejouée après
+  refactoring sont **IDENTIQUES** au run S1 `20261103T172241Z-b3b507` au sens de `passages/non_regression.py` :
+  3 000 images, 22 franchissements, pistes, passages, doublons et statistiques égaux. C'est une équivalence de
+  comportement, **pas une mesure de justesse** : S1 reste une baseline technique non validée.
+- **Proposé, non encore décidé** : exiger un verdict IDENTIQUE face à S1 (ou à une rejouée de référence documentée)
+  pour tout refactoring du chemin d'analyse. Seuls l'identifiant de run, les dates, les durées et l'état git sont
+  exclus de la comparaison.
+- **Hors périmètre** : classes, clé de configuration du type de détecteur, description du détecteur dans le manifeste,
+  second détecteur (RF-DETR). Chacun fera l'objet d'une entrée propre.
+- **Dépendances** : aucune nouvelle (`typing.Protocol` fait partie de la bibliothèque standard).
+- **Révision** : quand un second détecteur sera décidé, ou quand l'interface devra transporter des classes.
